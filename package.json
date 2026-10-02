@@ -1,0 +1,9 @@
+{
+  "name": "smart-real-estate-crm",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "postinstall": "npm install --prefix backend && npm run --prefix backend prisma:generate",
+    "start": "npm run dev --prefix backend"
+  }
+}
