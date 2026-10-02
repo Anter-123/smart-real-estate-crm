@@ -1,0 +1,41 @@
+# Dependencies
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# Production builds
+dist/
+frontend/dist/
+backend/dist/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+backend/.env
+frontend/.env
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Prisma / SQLite local files
+*.db-journal
+backend/prisma/*.db-journal
+
+# Uploaded media (preserve folder structure)
+backend/uploads/*
+!backend/uploads/.gitkeep
+
+# Temporary test/scratch scripts
+backend/dump.ts
+backend/find-lost.ts
+backend/test-*.ts
+
+# OS and Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

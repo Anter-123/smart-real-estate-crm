@@ -1,0 +1,170 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id          String   @id @default(uuid())
+  email       String   @unique
+  password    String
+  name        String
+  role        String   // "ADMIN" | "MANAGER" | "AGENT"
+  permissions String?  // JSON array of granular permissions
+  phone       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  properties Property[]
+  clients    Client[]
+  reminders  Reminder[]
+}
+
+model Property {
+  id           String   @id @default(uuid())
+  propertyId   String   @unique // Auto-generated short reference (e.g. PROP-1001)
+  type         String   // "APARTMENT" | "VILLA" | "OFFICE" | "SHOP" | "LAND"
+  listingType  String   // "SALE" | "RENT"
+  address      String
+  area         Float    // In sqm
+  bedrooms     Int?
+  bathrooms    Int?
+  floorNumber  Int?
+  finishing    String   // "SUPER_LUX" | "ULTRA_LUX" | "SEMI_FINISHED" | "UNFINISHED"
+  furnished    Boolean  @default(false)
+  price        Float    // Total sale price or monthly rent
+  images       String   // JSON array of image URLs
+  videos       String?  // JSON array of video URLs
+  description  String?
+  status       String   // "AVAILABLE" | "SOLD" | "RENTED"
+  notes        String?
+  dateAdded    DateTime @default(now())
+
+  agentId      String?
+  agent        User?    @relation(fields: [agentId], references: [id])
+  ownerId      String
+  owner        Owner    @relation(fields: [ownerId], references: [id])
+  brokerId     String?
+  broker       Broker?  @relation(fields: [brokerId], references: [id])
+}
+
+model Owner {
+  id           String   @id @default(uuid())
+  ownerId      String   @unique // Short reference (e.g. OWN-1001)
+  name         String
+  phone        String
+  whatsapp     String
+  email        String?
+  address      String?
+  nationalId   String?
+  notes        String?
+  createdAt    DateTime @default(now())
+
+  properties   Property[]
+}
+
+model Client {
+  id           String   @id @default(uuid())
+  clientId     String   @unique // Short reference (e.g. CLI-1001)
+  name         String
+  phone        String
+  whatsapp     String
+  email        String?
+  clientType   String   // "BUYER" | "TENANT" | "INVESTOR"
+  pipelineStep String   // "NEW" | "INTERESTED" | "NEGOTIATING" | "CLOSED" | "LOST"
+  createdAt    DateTime @default(now())
+
+  agentId      String?
+  agent        User?    @relation(fields: [agentId], references: [id])
+  brokerId     String?
+  broker       Broker?  @relation(fields: [brokerId], references: [id])
+
+  requirements Requirement?
+  reminders    Reminder[]
+  whatsappLogs WhatsAppLog[]
+}
+
+model Requirement {
+  id          String  @id @default(uuid())
+  clientId    String  @unique
+  client      Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  listingType String  // "SALE" | "RENT"
+  type        String  // "APARTMENT" | "VILLA" | "OFFICE" | "SHOP" | "LAND"
+  preferredAreas String // JSON array of areas
+  minBudget   Float?
+  maxBudget   Float?
+  minArea     Float?
+  bedrooms    Int?
+  furnished   Boolean @default(false)
+  notes       String?
+  priority    String  // "LOW" | "MEDIUM" | "HIGH"
+}
+
+model Broker {
+  id           String   @id @default(uuid())
+  name         String
+  phone        String
+  whatsapp     String
+  commissionPct Float   @default(2.5) // Commission percentage
+  createdAt    DateTime @default(now())
+
+  properties   Property[]
+  clients      Client[]
+  deals        Deal[]
+}
+
+model Deal {
+  id           String   @id @default(uuid())
+  dealId       String   @unique
+  amount       Float    // Total deal / property value
+  commission   Float    // Company gross commission
+  netRevenue   Float    @default(0) // Net revenue for our company (Gross Commission - Broker Share)
+  brokerShare  Float    @default(0) // External broker share/commission
+  soldBy       String   @default("DIRECT") // "DIRECT" | "EXTERNAL_BROKER"
+  dealType     String   @default("SALE") // "SALE" | "RENT"
+  brokerId     String?
+  broker       Broker?  @relation(fields: [brokerId], references: [id])
+  brokerName   String?
+  propertyId   String
+  clientId     String?
+  clientName   String?
+  agentId      String?
+  agentName    String?
+  notes        String?
+  createdAt    DateTime @default(now())
+}
+
+model Reminder {
+  id           String   @id @default(uuid())
+  title        String
+  description  String?
+  time         DateTime
+  status       String   // "PENDING" | "COMPLETED"
+  clientId     String?
+  client       Client?  @relation(fields: [clientId], references: [id])
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  createdAt    DateTime @default(now())
+}
+
+model WhatsAppLog {
+  id           String   @id @default(uuid())
+  clientId     String
+  client       Client   @relation(fields: [clientId], references: [id])
+  message      String
+  status       String   // "SENT" | "FAILED" | "PENDING"
+  direction    String   // "OUTBOUND"
+  createdAt    DateTime @default(now())
+}
+
+model AuditLog {
+  id           String   @id @default(uuid())
+  userId       String?
+  userName     String?
+  action       String   // e.g. "CREATE_PROPERTY", "UPDATE_CLIENT"
+  details      String   // JSON details of the action
+  createdAt    DateTime @default(now())
+}

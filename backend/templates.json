@@ -1,0 +1,1 @@
+{"template":"Hello {clientName},\nA new {type} matching your requirements is now available.\n\nLocation: {location}\nPrice: {price}\nArea: {area} sqm\nBedrooms: {bedrooms}\n\nClick here to view details: {link}"}
