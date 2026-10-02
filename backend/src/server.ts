@@ -107,7 +107,11 @@ app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
  */
 
 // Start Server
-app.listen(port, () => {
-  console.log(`Server running at http://localhost:${port}`);
-  console.log(`API Documentation available at http://localhost:${port}/api-docs`);
-});
+if (!process.env.VERCEL) {
+  app.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}`);
+    console.log(`API Documentation available at http://localhost:${port}/api-docs`);
+  });
+}
+
+export default app;
